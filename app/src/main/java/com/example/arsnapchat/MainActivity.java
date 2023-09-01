@@ -30,8 +30,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         CustomArFragment customArFragment = (CustomArFragment) getSupportFragmentManager().findFragmentById(R.id.arFragment);
+
+
         ModelRenderable.builder()
-                .setSource(this, R.raw.fox_face)
+                .setSource(this, R.raw.glasses)
                 .build()
                 .thenAccept(rendarable -> {
                     this.modelRenderable = rendarable;
