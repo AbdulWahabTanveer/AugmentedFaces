@@ -10,6 +10,6 @@
     android:id="@+id/arFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:name="com.example.arsnapchat.CustomArFragment"/>
+    android:name="com.example.arsnapchat.ARRenderer"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

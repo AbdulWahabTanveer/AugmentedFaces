@@ -15,7 +15,7 @@ import com.google.ar.sceneform.ux.ArFragment;
 import java.util.EnumSet;
 import java.util.Set;
 
-public class CustomArFragment extends ArFragment {
+public class ARRenderer extends ArFragment {
     @Override
     protected Config getSessionConfiguration(Session session) {
         Config config = new Config(session);

@@ -1,87 +1,48 @@
 package com.example.arsnapchat;
 
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.Context;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
 
-import android.os.Bundle;
-import android.widget.Toast;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
-import com.google.ar.core.AugmentedFace;
-import com.google.ar.core.Frame;
-import com.google.ar.core.TrackingState;
-import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.Renderable;
-import com.google.ar.sceneform.rendering.Texture;
-import com.google.ar.sceneform.ux.AugmentedFaceNode;
+public class ARRenderer implements GLSurfaceView.Renderer {
+    private ARSession arSession;
+    private Context context;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+    public ARRenderer(Context context) {
+        this.context = context;
+    }
 
-public class MainActivity extends AppCompatActivity {
-    private ModelRenderable modelRenderable;
-    private Texture texture;
-    private boolean isAdded = false;
-    private final HashMap<AugmentedFace, AugmentedFaceNode> faceNodeMap = new HashMap<>();
+    public void setSession(ARSession arSession) {
+        this.arSession = arSession;
+    }
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+        // Handle surface changes
+    }
 
-        CustomArFragment customArFragment = (CustomArFragment) getSupportFragmentManager().findFragmentById(R.id.arFragment);
-        ModelRenderable.builder()
-                .setSource(this, R.raw.fox_face)
-                .build()
-                .thenAccept(rendarable -> {
-                    this.modelRenderable = rendarable;
-                    this.modelRenderable.setShadowCaster(false);
-                    this.modelRenderable.setShadowReceiver(false);
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        if (arSession == null) {
+            return;
+        }
 
-                })
-                .exceptionally(throwable -> {
-                    Toast.makeText(this, "error loading model", Toast.LENGTH_SHORT).show();
-                    return null;
-                });
-        Texture.builder()
-                .setSource(this, R.drawable.fox_face_mesh_texture)
-                .build()
-                .thenAccept(textureModel -> this.texture = textureModel)
-                .exceptionally(throwable -> {
-                    Toast.makeText(this, "cannot load texture", Toast.LENGTH_SHORT).show();
-                    return null;
-                });
+        // Clear screen
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        assert customArFragment != null;
-        customArFragment.getArSceneView().setCameraStreamRenderPriority(Renderable.RENDER_PRIORITY_FIRST);
-        customArFragment.getArSceneView().getScene().addOnUpdateListener(frameTime -> {
-            if (modelRenderable == null || texture == null) {
-                return;
-            }
-            Frame frame = customArFragment.getArSceneView().getArFrame();
-            assert frame != null;
-            Collection<AugmentedFace> augmentedFaces = frame.getUpdatedTrackables(AugmentedFace.class);
-
-            for (AugmentedFace augmentedFace : augmentedFaces) {
-                if (isAdded) return;
-
-                AugmentedFaceNode augmentedFaceMode = new AugmentedFaceNode(augmentedFace);
-                augmentedFaceMode.setParent(customArFragment.getArSceneView().getScene());
-                augmentedFaceMode.setFaceRegionsRenderable(modelRenderable);
-                augmentedFaceMode.setFaceMeshTexture(texture);
-                faceNodeMap.put(augmentedFace, augmentedFaceMode);
-                isAdded = true;
-
-                // Remove any AugmentedFaceNodes associated with an AugmentedFace that stopped tracking.
-                Iterator<Map.Entry<AugmentedFace, AugmentedFaceNode>> iterator = faceNodeMap.entrySet().iterator();
-                Map.Entry<AugmentedFace, AugmentedFaceNode> entry = iterator.next();
-                AugmentedFace face = entry.getKey();
-                while (face.getTrackingState() == TrackingState.STOPPED) {
-                    AugmentedFaceNode node = entry.getValue();
-                    node.setParent(null);
-                    iterator.remove();
-                }
-            }
+        // Update AR session
+        arSession.setUpdateListener(frame -> {
+            // Render AR content using OpenGL
         });
     }
+
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+
+    }
 }
+
